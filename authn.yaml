@@ -1,0 +1,13 @@
+apiVersion: security.istio.io/v1beta1
+kind: RequestAuthentication
+metadata:
+  name: base-authn
+  namespace: istio-system
+spec:
+  selector:
+    matchLabels:
+      istio: ingressgateway
+  jwtRules:
+  - issuer: "ciscosso"
+    jwks: |
+      {"keys":[{"kty":"RSA","e":"AQAB","kid":"0024132a-85cf-4d2a-9369-1997a11ca4a5","n":"x_r6HeZ-6tX9eaNqu0Ld_jCHMb6w8Gp074JWRNQTdgimXsk_kLO7D4Jj9VbdqGBeTQLDsFGabc_5jK5n-0cpeJ54j2hcrwb8Kitw9PSK1X1uWsOPHKiq9xpTUEpR6DfF8uwOOAuiOUwudnN5Bo-vu9qBqYN8_S3MzRadPNhA81M"}]}

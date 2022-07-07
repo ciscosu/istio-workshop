@@ -1,0 +1,21 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: hello
+  namespace: default
+spec:
+  hosts:
+  - "*"
+  gateways:
+  - hello-gw
+  http:
+  - match:
+    - uri:
+        prefix: /
+    rewrite:
+      uri: /hello
+    route:
+    - destination:
+        host: hello
+        port:
+          number: 80

@@ -1,0 +1,127 @@
+############################################################
+# Example configuration to bootstrap OPA-Istio sidecars.
+############################################################
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: opa-envoy-config
+data:
+  config.yaml: |
+    plugins:
+      envoy_ext_authz_grpc:
+        addr: :9191
+        path: istio/authz/allow
+    decision_logs:
+      console: true
+---
+############################################################
+# Example policy to enforce into OPA-Istio sidecars.
+############################################################
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: opa-policy
+data:
+  policy.rego: |
+    package istio.authz
+
+    import input.attributes.request.http as http_request
+    import input.parsed_path
+
+    default allow = false
+
+    allow {
+        roles_for_user[r]
+        required_roles[r]
+    }
+
+    roles_for_user[r] {
+        r := user_roles[user_name][_]
+    }
+
+    required_roles[r] {
+        perm := role_perms[r][_]
+        perm.method = http_request.method
+        perm.path = http_request.path
+    }
+
+    user_name = parsed {
+        [_, encoded] := split(http_request.headers.authorization, " ")
+        [parsed, _] := split(base64url.decode(encoded), ":")
+    }
+
+    user_roles = {
+        "alice": ["guest"],
+        "bob": ["admin"]
+    }
+
+    role_perms = {
+        "admin": [
+            {"method": "GET",  "path": "/hello"},
+        ],
+    }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: opa-authz
+  labels:
+    app: opa-authz
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: opa-authz
+  template:
+    metadata:
+      annotations:
+        sidecar.istio.io/inject: "false"
+#        sidecar.opa-istio.io/inject: "true"
+      labels:
+        app: opa-authz
+    spec:
+      volumes:
+        - configMap:
+            defaultMode: 420
+            name: opa-policy
+          name: opa-policy
+        - configMap:
+            defaultMode: 420
+            name: opa-envoy-config
+          name: opa-envoy-config
+      containers:
+        - name: opa-authz
+          image: openpolicyagent/opa:latest-envoy
+          volumeMounts:
+            - readOnly: true
+              mountPath: /policy
+              name: opa-policy
+            - readOnly: true
+              mountPath: /config
+              name: opa-envoy-config
+          args:
+            - "run"
+            - "--server"
+            - "--config-file=/config/config.yaml"
+            - "--addr=0.0.0.0:8181"
+            - "--diagnostic-addr=0.0.0.0:8282"
+            - "--ignore=.*"
+            - "/policy/policy.rego"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: opa-authz
+    tier: backend
+  name: opa-authz
+  namespace: default
+spec:
+  ports:
+  - port: 9191
+    protocol: TCP
+    targetPort: 9191
+  selector:
+    app: opa-authz
+  type: ClusterIP

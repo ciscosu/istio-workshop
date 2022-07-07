@@ -1,0 +1,17 @@
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: base-authz
+spec:
+  selector:
+    matchLabels:
+      app: hello
+  action: ALLOW
+  rules:
+  - to:
+    - operation:
+        methods: ["GET"]
+        paths: ["/hello"]
+    when:
+    - key: request.auth.claims[profileID]
+      values: ["50bb752c-0275-11e9-870e-2e981c966add"]

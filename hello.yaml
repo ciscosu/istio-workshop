@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: hello
+  name: hello
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: hello
+  template:
+    metadata:
+      annotations:
+#        sidecar.istio.io/inject: "false"
+#        sidecar.opa-istio.io/inject: "true"
+      labels:
+        app: hello
+        filter: ofilter
+    spec:
+      containers:
+      - image: ealen/echo-server
+        imagePullPolicy: IfNotPresent
+        name: hello
+        ports:
+        - containerPort: 80
+          name: http
+        resources:
+          requests: 
+            cpu: "200m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: hello
+    tier: backend
+  name: hello
+spec:
+  ports:
+    - port: 80
+      name: http
+      targetPort: 80
+  selector:
+    app: hello
