@@ -1,5 +1,5 @@
 ############################################################
-# Example configuration to bootstrap OPA-Istio sidecars.
+# Example configuration of OPA
 ############################################################
 apiVersion: v1
 kind: ConfigMap
@@ -15,7 +15,7 @@ data:
       console: true
 ---
 ############################################################
-# Example policy to enforce into OPA-Istio sidecars.
+# Example policy of OPA
 ############################################################
 apiVersion: v1
 kind: ConfigMap

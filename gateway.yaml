@@ -4,7 +4,6 @@ metadata:
   name: default-gw
 spec:
   selector:
-#    app: istio-ingressgateway
     istio: ingressgateway
   servers:
   - port:

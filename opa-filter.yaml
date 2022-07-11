@@ -4,12 +4,12 @@
 apiVersion: networking.istio.io/v1alpha3
 kind: EnvoyFilter
 metadata:
-  name: ofilter
+  name: opafilter
   namespace: default
 spec:
   workloadSelector:
     labels:
-      filter: ofilter
+      filter: opafilter
   configPatches:
     - applyTo: HTTP_FILTER
       match:

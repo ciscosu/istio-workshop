@@ -12,15 +12,12 @@ spec:
       app: hello
   template:
     metadata:
-      annotations:
-#        sidecar.istio.io/inject: "false"
-#        sidecar.opa-istio.io/inject: "true"
       labels:
         app: hello
-        filter: ofilter
+#        filter: opafilter #uncomment this line to enable opafilter
     spec:
       containers:
-      - image: ealen/echo-server
+      - image: docker.io/istio/examples-helloworld-v1
         imagePullPolicy: IfNotPresent
         name: hello
         ports:
